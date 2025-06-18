@@ -11,6 +11,7 @@ private:
     HANDLE m_thread; // CloseHandle
     SOCKET m_socket_listen; // closesocket
     DWORD  m_no_delay;
+    bool   m_as_client;
 
     void Entry();
     void Loop();
@@ -28,6 +29,8 @@ protected:
     void SetNoDelay(bool no_delay);
 
 public:
+    static char s_node[16];
+
     char const* const m_name;
     char const* const m_port;
     uint32_t const m_id;

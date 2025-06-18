@@ -9,6 +9,7 @@ bool Server_Startup();
 bool Server_Cleanup();
 
 SOCKET Server_CreateSocket(char const* port);
+SOCKET Server_CreateSocketClient(char const* node, char const* port);
 SOCKET Server_AcceptClient(SOCKET socket, DWORD nodelay);
 
 winrt::hstring Server_GetLocalIPv4Address();

@@ -69,6 +69,39 @@ SOCKET Server_CreateSocket(char const* port)
 }
 
 // OK
+SOCKET Server_CreateSocketClient(char const* node, char const* port)
+{
+    addrinfo hints;
+    addrinfo* result;
+    SOCKET clientsocket;
+    int status;
+
+    ZeroMemory(&hints, sizeof(hints));
+
+    hints.ai_family   = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_protocol = IPPROTO_TCP;
+
+    status = getaddrinfo(node, port, &hints, &result);
+    if (status != 0) { return INVALID_SOCKET; }
+
+    Cleaner free_info([=]() { freeaddrinfo(result); });
+
+    for (addrinfo* p = result; p != NULL; p = p->ai_next)
+    {
+    clientsocket = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
+    if (clientsocket == INVALID_SOCKET) { return INVALID_SOCKET; }
+
+    status = connect(clientsocket, p->ai_addr, static_cast<int>(p->ai_addrlen));
+    if (status != SOCKET_ERROR) { return clientsocket; }
+
+    closesocket(clientsocket);
+    }
+    
+    return INVALID_SOCKET;
+}
+
+// OK
 SOCKET Server_AcceptClient(SOCKET socket, DWORD nodelay)
 {
     SOCKET client = accept(socket, NULL, NULL);

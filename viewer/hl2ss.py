@@ -331,11 +331,21 @@ class _RANGEOF:
 
 class _client:
     def open(self, host, port, sockopt):
-        self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self._f = weakref.finalize(self, lambda s : s.close(), self._socket)
-        self._socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, sockopt['setsockopt.IPPROTO_TCP.TCP_NODELAY'])
-        self._socket.settimeout(sockopt['settimeout'])
-        self._socket.connect((host, port))
+        self._as_server = host is None
+
+        if (not self._as_server):
+            self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self._f = weakref.finalize(self, lambda s : s.close(), self._socket)
+            self._socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, sockopt['setsockopt.IPPROTO_TCP.TCP_NODELAY'])
+            self._socket.settimeout(sockopt['settimeout'])
+            self._socket.connect((host, port))
+        else:
+            self._serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self._serversocket.bind((socket.gethostname(), port))
+            self._serversocket.listen()
+            self._socket, _ = self._serversocket.accept()
+            self._f = weakref.finalize(self, lambda s : s.close(), self._socket)
+            self._g = weakref.finalize(self, lambda s : s.close(), self._serversocket)
 
     def sendall(self, data):
         self._socket.sendall(data)
@@ -364,6 +374,9 @@ class _client:
     def close(self):
         self._f.detach()
         self._socket.close()
+        if (self._as_server):
+            self._g.detach()
+            self._serversocket.close()
 
 
 #------------------------------------------------------------------------------
