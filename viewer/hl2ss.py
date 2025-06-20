@@ -332,20 +332,24 @@ class _RANGEOF:
 class _client:
     def open(self, host, port, sockopt):
         self._as_server = host is None
+        self._socket    = socket.socket(socket.AF_INET, socket.SOCK_STREAM)        
 
-        if (not self._as_server):
-            self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self._f = weakref.finalize(self, lambda s : s.close(), self._socket)
-            self._socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, sockopt['setsockopt.IPPROTO_TCP.TCP_NODELAY'])
-            self._socket.settimeout(sockopt['settimeout'])
-            self._socket.connect((host, port))
-        else:
-            self._serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        if (self._as_server):
+            self._serversocket = self._socket
+            self._g = weakref.finalize(self, lambda s : s.close(), self._serversocket)
+            self._serversocket.settimeout(sockopt['settimeout'])
             self._serversocket.bind((socket.gethostname(), port))
             self._serversocket.listen()
-            self._socket, _ = self._serversocket.accept()
-            self._f = weakref.finalize(self, lambda s : s.close(), self._socket)
-            self._g = weakref.finalize(self, lambda s : s.close(), self._serversocket)
+            self._socket, self._host = self._serversocket.accept()
+
+        self._f = weakref.finalize(self, lambda s : s.close(), self._socket)
+        self._socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, sockopt['setsockopt.IPPROTO_TCP.TCP_NODELAY'])
+        self._socket.settimeout(sockopt['settimeout'])
+
+        if (self._as_server):
+            return
+
+        self._socket.connect((host, port))
 
     def sendall(self, data):
         self._socket.sendall(data)
