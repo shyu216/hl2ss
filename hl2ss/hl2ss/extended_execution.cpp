@@ -7,6 +7,7 @@
 #include "log.h"
 
 #include <winrt/Windows.Foundation.h>
+#include <winrt/Windows.Foundation.Collections.h>
 #include <winrt/Windows.ApplicationModel.h>
 #include <winrt/Windows.ApplicationModel.Core.h>
 #include <winrt/Windows.ApplicationModel.ExtendedExecution.Foreground.h>
@@ -22,12 +23,23 @@ using namespace winrt::Windows::UI::Core;
 using namespace winrt::Windows::UI::Popups;
 using namespace winrt::Windows::Storage;
 
+struct InterfaceConfiguration
+{
+    char host[16];
+    std::atomic<int32_t> priority;
+    std::atomic<uint32_t> wait_client;
+    std::atomic<bool> disable_server;
+    std::atomic<bool> enable_client;
+    uint8_t _reserved[2];
+};
+
 //-----------------------------------------------------------------------------
 // Global Variables
 //-----------------------------------------------------------------------------
 
-static wchar_t const* g_name_flat = L"flat_mode.cfg";
-static wchar_t const* g_name_quiet = L"quiet_mode.cfg";
+static wchar_t const* const g_name_flat = L"flat_mode.cfg";
+static wchar_t const* const g_name_quiet = L"quiet_mode.cfg";
+static wchar_t const* const g_name_interface_configuration = L"hl2ss.txt";
 
 static CRITICAL_SECTION g_lock; // DeleteCriticalSection
 static HANDLE g_event; // CloseHandle
@@ -35,7 +47,8 @@ static std::queue<winrt::hstring> g_mailbox;
 static HANDLE g_thread; // CloseHandle
 static ExtendedExecutionForegroundSession g_eefs = nullptr;
 static bool g_status = false;
-static std::atomic<int32_t> g_interface_priority[INTERFACE_SLOTS];
+static SRWLOCK g_interface_lock[INTERFACE_SLOTS];
+static InterfaceConfiguration g_interface_configuration[INTERFACE_SLOTS];
 static long g_log_error = 0;
 static std::atomic<bool> g_encoder_buffering = false;
 static std::atomic<bool> g_reader_buffering = false;
@@ -115,9 +128,21 @@ static bool ExtendedExecution_GetFileRegister(winrt::hstring option)
 }
 
 // OK
+static void ExtendedExecution_ResetInterfaceConfiguration(int id)
+{
+    InitializeSRWLock(&g_interface_lock[id]);
+    memset(g_interface_configuration[id].host, 0, sizeof(InterfaceConfiguration::host));
+    g_interface_configuration[id].priority = THREAD_PRIORITY_NORMAL;
+    g_interface_configuration[id].wait_client = 1000;
+    g_interface_configuration[id].disable_server = false;
+    g_interface_configuration[id].enable_client = false;
+    memset(g_interface_configuration[id]._reserved, 0, sizeof(InterfaceConfiguration::_reserved));
+}
+
+// OK
 void ExtendedExecution_Initialize()
 {
-    for (int id = 0; id < INTERFACE_SLOTS; ++id) { g_interface_priority[id] = THREAD_PRIORITY_NORMAL; }
+    for (int id = 0; id < INTERFACE_SLOTS; ++id) { ExtendedExecution_ResetInterfaceConfiguration(id); }
 
     InitializeCriticalSection(&g_lock);
     g_event = CreateEvent(NULL, FALSE, FALSE, NULL);
@@ -191,14 +216,14 @@ void ExtendedExecution_SetInterfacePriority(uint32_t id, int32_t priority)
 {
     if (id >= INTERFACE_SLOTS) { return; }
     if ((priority < THREAD_PRIORITY_LOWEST) || (priority > THREAD_PRIORITY_HIGHEST)) { return; }
-    g_interface_priority[id] = priority;
+    g_interface_configuration[id].priority = priority;
 }
 
 // OK
 int32_t ExtendedExecution_GetInterfacePriority(uint32_t id)
 {
     if (id >= INTERFACE_SLOTS) { return THREAD_PRIORITY_NORMAL; }
-    return g_interface_priority[id];
+    return g_interface_configuration[id].priority;
 }
 
 // OK
@@ -235,4 +260,101 @@ void ExtendedExecution_SetQuietMode(bool quiet)
 bool ExtendedExecution_GetQuietMode()
 {
     return ExtendedExecution_GetFileRegister(g_name_quiet);
+}
+
+// OK
+void ExtendedExecution_SetInterfaceHost(uint32_t id, std::string const& host)
+{
+    if (id >= INTERFACE_SLOTS) { return; }
+    int const max_chars = sizeof(InterfaceConfiguration::host) - 1;
+    int chars = host.length() < max_chars ? static_cast<int>(host.length()) : max_chars;
+    SRWLock srw(&g_interface_lock[id], true);    
+    memcpy(g_interface_configuration[id].host, host.c_str(), chars);
+    g_interface_configuration[id].host[chars] = '\0';
+}
+
+// OK
+std::string ExtendedExecution_GetInterfaceHost(uint32_t id)
+{
+    if (id >= INTERFACE_SLOTS) { return ""; }
+    SRWLock srw(&g_interface_lock[id], false);
+    return g_interface_configuration[id].host;
+}
+
+// OK
+void ExtendedExecution_SetInterfaceServerDisable(uint32_t id, bool disable)
+{
+    if (id >= INTERFACE_SLOTS) { return; }
+    g_interface_configuration[id].disable_server = disable;
+}
+
+// OK
+bool ExtendedExecution_GetInterfaceServerDisable(uint32_t id)
+{
+    if (id >= INTERFACE_SLOTS) { return false; }
+    return g_interface_configuration[id].disable_server;
+}
+
+// OK
+void ExtendedExecution_SetInterfaceClientEnable(uint32_t id, bool enable)
+{
+    if (id >= INTERFACE_SLOTS) { return; }
+    g_interface_configuration[id].enable_client = enable;
+}
+
+// OK
+bool ExtendedExecution_GetInterfaceClientEnable(uint32_t id)
+{
+    if (id >= INTERFACE_SLOTS) { return false; }
+    return g_interface_configuration[id].enable_client;
+}
+
+// OK
+void ExtendedExecution_SetInterfaceWaitClient(uint32_t id, uint32_t wait_client)
+{
+    if (id >= INTERFACE_SLOTS) { return; }
+    g_interface_configuration[id].wait_client = wait_client;
+}
+
+// OK
+uint32_t ExtendedExecution_GetInterfaceWaitClient(uint32_t id)
+{
+    if (id >= INTERFACE_SLOTS) { return 0; }
+    return g_interface_configuration[id].wait_client;
+}
+
+// OK
+void ExtendedExecution_LoadInterfaceConfiguration()
+{
+    std::string host;
+    bool disable_server;
+    bool enable_client;
+    uint32_t wait_client;
+
+    try
+    {
+    StorageFile file = winrt::Windows::Storage::ApplicationData::Current().LocalFolder().GetFileAsync(g_name_interface_configuration).get();
+    auto lines = FileIO::ReadLinesAsync(file).get();
+    int size = lines.Size();
+    if (size < 4) { throw std::runtime_error("Incomplete CFG file"); }
+
+    host           =      winrt::to_string(lines.GetAt(0));
+    disable_server = stoi(winrt::to_string(lines.GetAt(1))) != 0;
+    enable_client  = stoi(winrt::to_string(lines.GetAt(2))) != 0;
+    wait_client    = stoi(winrt::to_string(lines.GetAt(3)));
+    
+    for (int id = 0; id < INTERFACE_SLOTS; ++id)
+    {
+    ExtendedExecution_SetInterfaceHost(id, host);
+    ExtendedExecution_SetInterfaceServerDisable(id, disable_server);
+    ExtendedExecution_SetInterfaceClientEnable(id, enable_client);
+    ExtendedExecution_SetInterfaceWaitClient(id, wait_client);
+    }
+
+    ShowMessage("Loaded %S : host=%s disable_server=%d enable_client=%d wait_client=%d", g_name_interface_configuration, host.c_str(), disable_server, enable_client, wait_client);
+    }
+    catch (...)
+    {
+    ShowMessage("Failed to load %S", g_name_interface_configuration);
+    }
 }

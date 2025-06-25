@@ -69,7 +69,7 @@ SOCKET Server_CreateSocket(char const* port)
 }
 
 // OK
-SOCKET Server_CreateSocketClient(char const* node, char const* port)
+SOCKET Server_CreateClient(char const* node, char const* port)
 {
     addrinfo hints;
     addrinfo* result;
@@ -102,13 +102,25 @@ SOCKET Server_CreateSocketClient(char const* node, char const* port)
 }
 
 // OK
-SOCKET Server_AcceptClient(SOCKET socket, DWORD nodelay)
+SOCKET Server_AcceptClient(SOCKET socket, bool wait)
 {
-    SOCKET client = accept(socket, NULL, NULL);
+    if (!wait)
+    {
+    timeval timeout{ 0,0 };
+    fd_set read;
+    FD_ZERO(&read);
+    FD_SET(socket, &read);
+    int count = select(1, &read, NULL, NULL, &timeout);
+    if (count != 1) { return INVALID_SOCKET; }
+    }
 
-    setsockopt(client, IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<char*>(&nodelay), sizeof(nodelay));
+    return accept(socket, NULL, NULL);
+}
 
-    return client;
+// OK
+void Server_SetupClient(SOCKET socket, DWORD nodelay)
+{
+    setsockopt(socket, IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<char*>(&nodelay), sizeof(nodelay));
 }
 
 // OK

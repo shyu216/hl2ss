@@ -64,6 +64,7 @@ void HL2SS_Load(bool standalone)
     CustomEncoder_Startup();
 
     ExtendedExecution_Initialize();
+    ExtendedExecution_LoadInterfaceConfiguration();
 
     if (g_standalone)
     {
