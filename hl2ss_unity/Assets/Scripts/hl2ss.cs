@@ -5,7 +5,6 @@ using UnityEngine;
 
 public static class hl2ss
 {
-#if WINDOWS_UWP
     [DllImport("hl2ss")]
     private static extern void InitializeStreamsOnUI(uint enable);
     [DllImport("hl2ss")]
@@ -44,92 +43,7 @@ public static class hl2ss
     private static extern void PersonalVideo_RegisterNamedMutex([MarshalAs(UnmanagedType.LPWStr)] string name);
     [DllImport("hl2ss")]
     private static extern void ExtendedVideo_RegisterNamedMutex([MarshalAs(UnmanagedType.LPWStr)] string name);
-#else
-    private static void InitializeStreamsOnUI(uint enable)
-    {
-    }
 
-    private static void DebugMessage(string str)
-    {
-        Debug.Log(str);
-    }
-
-    private static void GetLocalIPv4Address(byte[] data, int size)
-    {
-    }
-
-    private static int OverrideWorldCoordinateSystem(IntPtr scs)
-    {
-        return 1;
-    }
-
-    private static void CheckExceptions()
-    {
-    }
-
-    private static uint MQ_SI_Peek()
-    {
-        return ~0U;
-    }
-
-    private static void MQ_SI_Pop(out uint command, byte[] data)
-    {
-        command = ~0U;
-    }
-
-    private static void MQ_SO_Push(uint value)
-    {
-    }
-
-    private static void MQ_Restart()
-    {
-    }
-
-    private static uint MQX_CO_Peek()
-    {
-        return ~0U;
-    }
-
-    private static void MQX_CO_Pop(out uint value)
-    {
-        value = ~0U;
-    }
-
-    private static void MQX_CI_Push(uint command, uint size, IntPtr data)
-    {
-    }
-
-    private static void MQX_Restart()
-    {
-    }
-
-    private static IntPtr NamedMutex_Create(string name)
-    {
-        return IntPtr.Zero;
-    }
-
-    private static void NamedMutex_Destroy(IntPtr p)
-    {
-    }
-
-    private static int NamedMutex_Acquire(IntPtr p, uint timeout)
-    {
-        return 1;
-    }
-
-    private static int NamedMutex_Release(IntPtr p)
-    {
-        return 1;
-    }
-
-    private static void PersonalVideo_RegisterNamedMutex(string name)
-    {
-    }
-
-    private static void ExtendedVideo_RegisterNamedMutex(string name)
-    {
-    }
-#endif
     public enum Device
     {
         PERSONAL_VIDEO = 3810,
