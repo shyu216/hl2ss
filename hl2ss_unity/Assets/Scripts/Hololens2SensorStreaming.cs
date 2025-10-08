@@ -54,4 +54,10 @@ public class Hololens2SensorStreaming : MonoBehaviour
     {
         hl2ss.CheckForErrors();        
     }
+
+    void OnApplicationQuit()
+    {
+        hl2ss.Initialize(false, false, false, false, false, false, false, false, false, false, false, false, false);
+        Debug.Log("HL2SS Unload");
+    }
 }
