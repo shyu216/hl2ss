@@ -101,6 +101,7 @@ public static class hl2ss
 
     public static void Print(string str)
     {
+        Debug.Log(string.Format("[HL2SS PRINT] {0}", str));
         DebugMessage(str);
     }
 
