@@ -50,3 +50,5 @@ hl2ss_td/calibration/*
 /extensions/client_python_mt/build
 /extensions/client_python_mt/__pycache__
 /viewer/.venv
+/hl2ss/hl2ss/x64
+/hl2ss/plugin/x64
