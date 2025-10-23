@@ -674,23 +674,30 @@ def _connect_client_extended_depth(host, port, sockopt, chunk_size, mode, diviso
 
 
 class _PVCNT:
-    START =  0x04
-    STOP   = 0x08
+    START = 0x04
+    STOP  = 0x08
+    SYNC  = 0x10
 
 
 def start_subsystem_pv(host, port, sockopt, enable_mrc, hologram_composition, recording_indicator, video_stabilization, blank_protected, show_mesh, shared, global_opacity, output_width, output_height, video_stabilization_length, hologram_perspective):
     c = _client()
     c.open(host, port, sockopt)
-    c.sendall(_create_configuration_for_mode(_PVCNT.START | StreamMode.MODE_3))
+    c.sendall(_create_configuration_for_mode(_PVCNT.SYNC | _PVCNT.START | StreamMode.MODE_3))
     c.sendall(_create_configuration_for_mrc_video(enable_mrc, hologram_composition, recording_indicator, video_stabilization, blank_protected, show_mesh, shared, global_opacity, output_width, output_height, video_stabilization_length, hologram_perspective))
+    s = struct.unpack('<b', c.recv(_SIZEOF.BYTE))[0]
     c.close()
+    if (not s):
+        raise Exception('subsystem start failed')
 
 
 def stop_subsystem_pv(host, port, sockopt):
     c = _client()
     c.open(host, port, sockopt)
-    c.sendall(_create_configuration_for_mode(_PVCNT.STOP | StreamMode.MODE_3))
+    c.sendall(_create_configuration_for_mode(_PVCNT.SYNC | _PVCNT.STOP | StreamMode.MODE_3))
+    s = struct.unpack('<b', c.recv(_SIZEOF.BYTE))[0]
     c.close()
+    if (s):
+        raise Exception('subsystem stop failed')
 
 
 #------------------------------------------------------------------------------
