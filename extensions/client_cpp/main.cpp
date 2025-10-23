@@ -882,7 +882,7 @@ void test_dp_mrc(char const* host)
 int main()
 {
     char const* host = "192.168.1.7";
-    int test_id = 26;
+    int test_id = 9;
 
     try
     {
