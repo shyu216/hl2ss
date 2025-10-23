@@ -305,6 +305,7 @@ void test_pv(char const* host)
         print("pose", data->pose);
     }
 
+    source.reset();
     hl2ss::svc::stop_subsystem_pv(host, port);
 }
 
@@ -506,6 +507,7 @@ void test_extended_video(char const* host)
         print("pose", data->pose);
     }
 
+    source.reset();
     hl2ss::svc::stop_subsystem_pv(host, port);
 }
 
@@ -566,6 +568,7 @@ void test_pv_shared(char const* host)
         std::cout << "dimensions: " << region.metadata->width << " x " << region.metadata->height << std::endl;
     }
 
+    source.reset();
     hl2ss::svc::stop_subsystem_pv(host, port);
 }
 
@@ -852,13 +855,14 @@ void test_extended_depth(char const* host)
         std::cout << "dimensions: " << width << " x " << height << std::endl;
     }
 
+    source.reset();
     hl2ss::svc::stop_subsystem_pv(host, port);
 }
 
 int main()
 {
     char const* host = "192.168.1.7";
-    int test_id = 0;
+    int test_id = 4;
 
     try
     {

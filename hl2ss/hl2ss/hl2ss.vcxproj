@@ -89,7 +89,7 @@
     <AppxBundle>Always</AppxBundle>
     <AppxBundlePlatforms>arm64</AppxBundlePlatforms>
     <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
-    <PackageCertificateThumbprint>D98E441A0E47A44188C1A8D182A165044B5EFA8A</PackageCertificateThumbprint>
+    <PackageCertificateThumbprint>A159FAF5FD8768D6E730452EDB2602B03B5E1574</PackageCertificateThumbprint>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
