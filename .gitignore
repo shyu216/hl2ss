@@ -52,3 +52,4 @@ hl2ss_td/calibration/*
 /viewer/.venv
 /hl2ss/hl2ss/x64
 /hl2ss/plugin/x64
+/viewer/.vscode
