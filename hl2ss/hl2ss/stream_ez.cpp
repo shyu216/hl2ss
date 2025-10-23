@@ -204,6 +204,14 @@ void Channel_EZ::Run()
     {
     if (ExtendedDepth_Status()) { ExtendedDepth_Close(); }
     }
+
+    if (mode & 0x10)
+    {
+    bool status = ExtendedDepth_Status();
+    WSABUF wsaBuf[1];
+    pack_buffer(wsaBuf, 0, &status, sizeof(status));
+    send_multiple(m_socket_client, m_event_client, wsaBuf, sizeof(wsaBuf) / sizeof(WSABUF));
+    }
 }
 
 // OK

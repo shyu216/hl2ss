@@ -287,7 +287,15 @@ void Channel_PV::Run()
     if (mode & 8) 
     { 
     if (PersonalVideo_Status()) { PersonalVideo_Close(); }
-    }    
+    }
+
+    if (mode & 0x10)
+    {
+    bool status = PersonalVideo_Status();
+    WSABUF wsaBuf[1];
+    pack_buffer(wsaBuf, 0, &status, sizeof(status));
+    send_multiple(m_socket_client, m_event_client, wsaBuf, sizeof(wsaBuf) / sizeof(WSABUF));
+    }
 }
 
 // OK
