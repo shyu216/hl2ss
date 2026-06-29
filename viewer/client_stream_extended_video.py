@@ -15,14 +15,14 @@ import hl2ss_utilities
 # Settings --------------------------------------------------------------------
 
 # HoloLens address
-host = "192.168.1.7"
+host = "192.168.137.69"
 
 # Operating mode
 # 0: video
 # 1: video + rignode pose
 # 2: query devices (single transfer)
 # Mode 2 as default since the user has to find their camera in the device list
-mode = hl2ss.StreamMode.MODE_2
+mode = hl2ss.StreamMode.MODE_1
 
 # Camera selection
 # 1. Connect your external USB-C camera to the HoloLens 

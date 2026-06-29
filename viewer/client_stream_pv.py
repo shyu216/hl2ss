@@ -19,7 +19,7 @@ import hl2ss_utilities
 # Settings --------------------------------------------------------------------
 
 # HoloLens address
-host = "192.168.1.7"
+host = '192.168.137.69'
 
 # Operating mode
 # 0: video
@@ -33,7 +33,7 @@ enable_mrc = False
 # Enable Shared Capture
 # If another program is already using the PV camera, you can still stream it by
 # enabling shared mode, however you cannot change the resolution and framerate
-shared = False
+shared = True #False
 
 # Camera parameters
 # Ignored in shared mode

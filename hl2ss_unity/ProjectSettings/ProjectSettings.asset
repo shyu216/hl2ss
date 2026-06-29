@@ -622,7 +622,7 @@ PlayerSettings:
   metroCertificatePassword: 
   metroCertificateSubject: jcds
   metroCertificateIssuer: jcds
-  metroCertificateNotAfter: 00e476f0c0bbdb01
+  metroCertificateNotAfter: 008afc671f21de01
   metroApplicationDescription: hl2ss unity
   wsaImages: {}
   metroTileShortName: hl2ss sample

@@ -11,13 +11,13 @@ import hl2ss_lnm
 # Settings --------------------------------------------------------------------
 
 # HoloLens address
-host = '192.168.1.7'
+host = '192.168.137.69' # '172.24.161.180'
 
 # Run hl2ss in flat mode
 # Allows running hl2ss alongside other applications (including holographics)
 # Requires restarting hl2ss on the HoloLens
 # Spatial Input not supported in flat mode
-flat_mode = False
+flat_mode = True # False #
 
 # Disable hl2ss popup warnings
 # Requires restarting hl2ss on the HoloLens

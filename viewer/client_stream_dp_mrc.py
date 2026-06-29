@@ -19,14 +19,14 @@ import hl2ss_utilities
 # Settings --------------------------------------------------------------------
 
 # HoloLens address
-host = "192.168.1.7"
+host = "192.168.137.69"
 
 # Port
 port = hl2ss_dp.StreamPort.LIVE
 
 # Device Portal login
-user = 'user'
-password = 'pass'
+user = 'sihong'
+password = '5201111'
 
 # Decoded format
 # Options include:
@@ -39,7 +39,7 @@ decoded_format = 'bgr24'
 
 # MRC Configuration
 pv = True # Enable PV video
-holo = False # Enable Holograms on PV video
+holo = True # Enable Holograms on PV video
 mic = True # Enable Microphone
 loopback = False # Include application audio
 render_from_camera = True # Render Holograms from PV perspective
